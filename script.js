@@ -1,22 +1,22 @@
 // Use the API_URL variable to make fetch requests to the API.
 // Replace the placeholder with your cohort name (ex: 2109-UNF-HY-WEB-PT)
-const cohortName = "2404-FTB-ET-WEB-AM";
+const cohortName = "2406-CRA-ET-WEB-AM";
 const API_URL = `https://fsa-puppy-bowl.herokuapp.com/api/${cohortName}`;
 
 const modal = document.querySelector(".modal");
 const modalContent = document.querySelector(".modal-content");
 const closeModal = document.querySelector("#close-modal");
+const mainContainer = document.querySelector("main");
 
-modal.addEventListener("click", function(e){
+modal.addEventListener("click", function (e) {
   // closes modal when you click outside the content area of the modal
-  console.log(e.target.classList)
-  if(!e.target.classList.contains("modal-content") ){
-
+  console.log(e.target.classList);
+  if (!e.target.classList.contains("modal-content")) {
     modalContent.classList.remove("modal-content-open");
-      modal.classList.remove("modal-open")
-    modalContent.innerHTML = ''
+    modal.classList.remove("modal-open");
+    modalContent.innerHTML = "";
   }
-})
+});
 
 /**
  * Fetches all players from the API.
@@ -28,8 +28,11 @@ const fetchAllPlayers = async () => {
     /* Remember, if you're using the modal, when you create the details button,
     in th event handler, create functionality that adds the class 'modal-open' to the modal var and 'modal-content-open' to the
     modalContent var */
-  }catch(err){
-     console.error("Uh oh, trouble fetching players!", err);
+    const res = await fetch(`${API_URL}/players`);
+    const json = await res.json();
+    return json.data.players;
+  } catch (err) {
+    console.error("Uh oh, trouble fetching players!", err);
   }
 };
 
@@ -94,11 +97,33 @@ const removePlayer = async (playerId) => {
  * @param {Object[]} playerList - an array of player objects
  */
 const renderAllPlayers = (playerList) => {
- // TODO
+  console.log(playerList);
+  const playerCardsHTML = playerList.map((player) => {
+    const playerCard = document.createElement("div");
+    playerCard.classList.add("player-card");
+    const playerImg = document.createElement("img");
+    playerImg.src = player.imageUrl;
+    playerImg.alt = player.name;
+    const playerName = document.createElement("h3");
+    playerName.innerText = player.name;
+    const detailsButton = document.createElement("button");
+    detailsButton.innerText = "See Details";
+    detailsButton.addEventListener("click", function () {
+      modal.classList.add("modal-open");
+      modalContent.classList.add("modal-content-open");
+    });
 
- // when you add a event handler to the buttons, you need to pass an id of the player
- // to the function renderSinglePlayer or removePlayer
- /*
+    playerCard.replaceChildren(playerImg, playerName, detailsButton);
+
+    return playerCard;
+  });
+
+  mainContainer.replaceChildren(...playerCardsHTML);
+
+  // TODO
+  // when you add a event handler to the buttons, you need to pass an id of the player
+  // to the function renderSinglePlayer or removePlayer
+  /*
      ...your code(player=>{
       // more code...
         deleteButton.addEventListener("click", function(){
@@ -139,9 +164,6 @@ const renderNewPlayerForm = () => {
   }
 };
 
-
-
-
 /**
  * Initializes the app by fetching all players and rendering them to the DOM.
  */
@@ -151,6 +173,5 @@ const init = async () => {
 
   renderNewPlayerForm();
 };
-
 
 init();
