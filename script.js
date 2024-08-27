@@ -7,6 +7,7 @@ const modal = document.querySelector(".modal");
 const modalContent = document.querySelector(".modal-content");
 const closeModal = document.querySelector("#close-modal");
 const mainContainer = document.querySelector("main");
+const addPlayerForm = document.querySelector("#new-player-form");
 
 modal.addEventListener("click", function (e) {
   // closes modal when you click outside the content area of the modal
@@ -44,6 +45,10 @@ const fetchAllPlayers = async () => {
 const fetchSinglePlayer = async (playerId) => {
   try {
     // TODO
+    const res = await fetch(`${API_URL}/players/${playerId}`);
+    const json = await res.json();
+    console.log(json.data);
+    return json.data.player;
   } catch (err) {
     console.error(`Oh no, trouble fetching player #${playerId}!`, err);
   }
@@ -108,7 +113,10 @@ const renderAllPlayers = (playerList) => {
     playerName.innerText = player.name;
     const detailsButton = document.createElement("button");
     detailsButton.innerText = "See Details";
-    detailsButton.addEventListener("click", function () {
+    detailsButton.addEventListener("click", async function () {
+      const playerData = await fetchSinglePlayer(player.id);
+      renderSinglePlayer(playerData);
+      console.log(playerData);
       modal.classList.add("modal-open");
       modalContent.classList.add("modal-content-open");
     });
@@ -149,6 +157,29 @@ const renderAllPlayers = (playerList) => {
  */
 const renderSinglePlayer = (player) => {
   // TODO
+  //delete player.team.name;
+  const playerName = document.createElement("h3");
+  playerName.innerText = player.name;
+  const playerBreed = document.createElement("p");
+  playerBreed.innerText = player.breed;
+  const playerImg = document.createElement("img");
+  playerImg.src = player.imageUrl;
+  playerImg.alt = player.name;
+  playerImg.width = 175;
+  const playerId = document.createElement("p");
+  playerId.innerText = `Player ID: ${player.id}`;
+  const teamName = document.createElement("p");
+  teamName.innerText = `Player Team Name: ${
+    player.team.name ? player.team.name : "Unassigned"
+  }`;
+
+  modalContent.replaceChildren(
+    playerName,
+    playerBreed,
+    playerImg,
+    playerId,
+    teamName
+  );
 };
 
 /**
@@ -158,7 +189,35 @@ const renderSinglePlayer = (player) => {
  */
 const renderNewPlayerForm = () => {
   try {
-    // TODO
+    // UI for name label and input
+    const nameLabel = document.createElement("label");
+    nameLabel.innerText = "Player Name";
+    nameLabel.setAttribute("for", "name-input");
+    const nameInput = document.createElement("input");
+    nameLabel.type = "text";
+    nameInput.id = "name-input";
+
+    const breedLabel = document.createElement("label");
+    breedLabel.innerText = "Player Breed";
+    breedLabel.setAttribute("for", "breed-input");
+    const breedInput = document.createElement("input");
+    breedInput.type = "text";
+    breedInput.id = "breed-input";
+
+    const imgLabel = document.createElement("label");
+    imgLabel.innerText = "Image URL";
+    imgLabel.setAttribute("for", "image-url-input");
+    const imgInput = document.createElement("input");
+    imgLabel.type = "text";
+    imgInput.id = "image-url-input";
+    addPlayerForm.replaceChildren(
+      nameLabel,
+      nameInput,
+      breedLabel,
+      breedInput,
+      imgLabel,
+      imgInput
+    );
   } catch (err) {
     console.error("Uh oh, trouble rendering the new player form!", err);
   }
@@ -169,8 +228,10 @@ const renderNewPlayerForm = () => {
  */
 const init = async () => {
   const players = await fetchAllPlayers();
+  console.log(players);
   renderAllPlayers(players);
-
+  const singlePlayer = await fetchSinglePlayer(11923);
+  console.log(singlePlayer);
   renderNewPlayerForm();
 };
 
