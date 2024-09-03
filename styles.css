@@ -70,3 +70,40 @@ main {
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
+
+@media (max-width: 1100px) {
+  main {
+    padding: 0 1%;
+  }
+
+  .player-card {
+    width: 49%;
+  }
+  .player-card h3 {
+    font-size: 24px;
+    padding: 12px 0;
+  }
+
+  .player-card button {
+    font-size: 28px;
+    padding: 12px 0;
+  }
+}
+
+@media (max-width: 720px) {
+  main {
+    justify-content: center;
+  }
+  .player-card {
+    width: 95%;
+  }
+  .player-card h3 {
+    font-size: 28px;
+    padding: 15px 0;
+  }
+
+  .player-card button {
+    font-size: 32px;
+    padding: 15px 0;
+  }
+}

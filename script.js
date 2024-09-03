@@ -62,6 +62,14 @@ const fetchSinglePlayer = async (playerId) => {
 const addNewPlayer = async (playerObj) => {
   try {
     // TODO
+    const res = await fetch(`${API_URL}/players/`, {
+      method: "POST",
+      body: JSON.stringify(playerObj),
+      headers: { "Content-Type": "application/json" },
+    });
+    const json = await res.json();
+    console.log(json);
+    return json;
   } catch (err) {
     console.error("Oops, something went wrong with adding that player!", err);
   }
@@ -73,7 +81,11 @@ const addNewPlayer = async (playerObj) => {
  */
 const removePlayer = async (playerId) => {
   try {
-    // TODO
+    const res = await fetch(`${API_URL}/players/${playerId}`, {
+      method: "DELETE",
+    });
+    const json = await res.json();
+    return json;
   } catch (err) {
     console.error(
       `Whoops, trouble removing player #${playerId} from the roster!`,
@@ -170,15 +182,31 @@ const renderSinglePlayer = (player) => {
   playerId.innerText = `Player ID: ${player.id}`;
   const teamName = document.createElement("p");
   teamName.innerText = `Player Team Name: ${
-    player.team.name ? player.team.name : "Unassigned"
+    player.team?.name ? player.team.name : "Unassigned"
   }`;
+
+  const removeButton = document.createElement("button");
+  removeButton.innerText = "Remove from Roster";
+  removeButton.addEventListener("click", async function (e) {
+    e.stopPropagation();
+    const result = await removePlayer(player.id);
+    if (result.success) {
+      alert("player removed successfully!");
+      modalContent.classList.remove("modal-content-open");
+      modal.classList.remove("modal-open");
+      modalContent.innerHTML = "";
+      const players = await fetchAllPlayers();
+      renderAllPlayers(players);
+    }
+  });
 
   modalContent.replaceChildren(
     playerName,
     playerBreed,
     playerImg,
     playerId,
-    teamName
+    teamName,
+    removeButton
   );
 };
 
@@ -187,42 +215,131 @@ const renderSinglePlayer = (player) => {
  * When the form is submitted, it should call `addNewPlayer`, fetch all players,
  * and then render all players to the DOM.
  */
+
+const handleAddPlayerSubmit = async (e) => {
+  e.preventDefault();
+  const name = document.querySelector("#name-input").value;
+  const breed = document.querySelector("#breed-input").value;
+  const status = document.querySelector("select").value;
+  const imageUrl = document.querySelector("#image-url-input").value
+    ? document.querySelector("#image-url-input").value
+    : "https://r.ddmcdn.com/w_1010/s_f/o_1/cx_0/cy_4/cw_1010/ch_1515/APL/uploads/2019/12/Bert-PBXVI.jpg";
+
+  const newPlayerData = { name, breed, status, imageUrl };
+  console.log(newPlayerData);
+  const result = await addNewPlayer(newPlayerData);
+  if (result.success) {
+    alert("Player successfully added! Please see the new player at the bottom");
+    const players = await fetchAllPlayers();
+    renderAllPlayers(players);
+  } else {
+    alert("Something went wrong.  Try again later");
+  }
+};
+
+addPlayerForm.addEventListener("submit", handleAddPlayerSubmit);
+
 const renderNewPlayerForm = () => {
   try {
     // UI for name label and input
-    const nameLabel = document.createElement("label");
-    nameLabel.innerText = "Player Name";
-    nameLabel.setAttribute("for", "name-input");
-    const nameInput = document.createElement("input");
-    nameLabel.type = "text";
-    nameInput.id = "name-input";
+    // funciton call to createTextInputWithLabel to create a new name and input
+    const nameInputLabelObj = createTextInputWithLabel(
+      "Player Name",
+      "name-input"
+    );
+    // console.log(nameInputLabelObj.label);
+    // console.log(nameInputLabelObj.textInput);
 
-    const breedLabel = document.createElement("label");
-    breedLabel.innerText = "Player Breed";
-    breedLabel.setAttribute("for", "breed-input");
-    const breedInput = document.createElement("input");
-    breedInput.type = "text";
-    breedInput.id = "breed-input";
+    // const nameLabel = document.createElement("label");
+    // nameLabel.innerText = "Player Name";
+    // nameLabel.setAttribute("for", "name-input");
+    // const nameInput = document.createElement("input");
+    // nameLabel.type = "text";
+    // nameInput.id = "name-input";
 
-    const imgLabel = document.createElement("label");
-    imgLabel.innerText = "Image URL";
-    imgLabel.setAttribute("for", "image-url-input");
-    const imgInput = document.createElement("input");
-    imgLabel.type = "text";
-    imgInput.id = "image-url-input";
+    const breedInputLabelObj = createTextInputWithLabel(
+      "Player Breed",
+      "breed-input"
+    );
+    // const breedLabel = document.createElement("label");
+    // breedLabel.innerText = "Player Breed";
+    // breedLabel.setAttribute("for", "breed-input");
+    // const breedInput = document.createElement("input");
+    // breedInput.type = "text";
+    // breedInput.id = "breed-input";
+
+    const imgLabelObj = createTextInputWithLabel(
+      "Image URL",
+      "image-url-input"
+    );
+
+    const statusInput = document.createElement("select");
+    const benchOption = document.createElement("option");
+    benchOption.innerText = "bench";
+    benchOption.setAttribute("selected", "selected");
+    const fieldOption = document.createElement("option");
+    fieldOption.innerText = "field";
+    statusInput.replaceChildren(benchOption, fieldOption);
+    const options = [
+      { innerText: "bench", value: "bench" },
+      { innerText: "field", value: "field" },
+    ];
+    const statusMenu = createSelectWithOptions(options, "bench");
+    const submitButton = document.createElement("button");
+    submitButton.innerText = "Submit";
+
+    // console.log(imgLabelObj.label);
+    // console.log(imgLabelObj.textInput);
+
+    // const imgLabel = document.createElement("label");
+    // imgLabel.innerText = "Image URL";
+    // imgLabel.setAttribute("for", "image-url-input");
+    // const imgInput = document.createElement("input");
+    // imgLabel.type = "text";
+    // imgInput.id = "image-url-input";
+
     addPlayerForm.replaceChildren(
-      nameLabel,
-      nameInput,
-      breedLabel,
-      breedInput,
-      imgLabel,
-      imgInput
+      nameInputLabelObj.label,
+      nameInputLabelObj.textInput,
+      breedInputLabelObj.label,
+      breedInputLabelObj.textInput,
+      statusMenu,
+      imgLabelObj.label,
+      imgLabelObj.textInput,
+      submitButton
     );
   } catch (err) {
     console.error("Uh oh, trouble rendering the new player form!", err);
   }
 };
 
+const createSelectWithOptions = (options, defaultValue) => {
+  //options will be an array with{innerText, value}
+  const select = document.createElement("select");
+  const optionsHTML = options.map((option) => {
+    const newOptionTag = document.createElement("option");
+    newOptionTag.innerText = option.innerText;
+    newOptionTag.value = option.value;
+    if (option.value === defaultValue) {
+      newOptionTag.setAttribute("selected", "selected");
+    }
+    return newOptionTag;
+  });
+  console.log(optionsHTML);
+  select.replaceChildren(...optionsHTML);
+  return select;
+};
+// helper function is to create text inputs
+const createTextInputWithLabel = (labelInnerText, inputIdentifier) => {
+  const label = document.createElement("label");
+  label.innerText = labelInnerText;
+  label.setAttribute("for", inputIdentifier);
+  //create the text input associated withthe label we just created, again withthe proper values
+  const textInput = document.createElement("input");
+  textInput.type = "text";
+  textInput.id = inputIdentifier;
+  return { label, textInput };
+};
 /**
  * Initializes the app by fetching all players and rendering them to the DOM.
  */
